@@ -24,7 +24,10 @@ void signal_handler(int sig)
         }
     }
 
-    fprintf(file, "Получен и обработан сигнал %d\n", sig);
+    if (sig == SIGINT)
+        sigint_count++;
+
+    fprintf(file, "Получен и обработан сигнал %d, sigint_count %d/3\n", sig, sigint_count);
     fflush(file);
 
     if (sigint_count >= 3)
