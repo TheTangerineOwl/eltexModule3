@@ -1,6 +1,6 @@
 #include "chat.h"
 
-int establish_connections(const char* talker, const char* listener)
+int establish_connections(run_info* info)
 {
     struct mq_attr attr = {
         .mq_flags = 0,
@@ -9,11 +9,13 @@ int establish_connections(const char* talker, const char* listener)
         .mq_curmsgs = 0
     };
     fflush(stdout);
-    mq_talk = open_connection(talker, &attr, false);
-    if (mq_talk == (mqd_t)-1)
+    char* talker = info->is_server ? Q_NAME_SERVER_TO_CLIENT : Q_NAME_CLIENT_TO_SERVER;
+    info->mq_talk = open_connection(talker, &attr, false);
+    if (info->mq_talk == (mqd_t)-1)
         return -1;
-    mq_listen = open_connection(listener, &attr, true);
-    if (mq_listen == (mqd_t)-1)
+    char* listener = !info->is_server ? Q_NAME_SERVER_TO_CLIENT : Q_NAME_CLIENT_TO_SERVER;
+    info->mq_listen = open_connection(listener, &attr, true);
+    if (info->mq_listen == (mqd_t)-1)
         return -1;
     return 0;
 }
@@ -40,10 +42,11 @@ int close_connection(mqd_t* mq)
     return 0;
 }
 
-int close_server(mqd_t* talk, const char* talker_name)
+int close_server(run_info* info)
 {
-    if (close_connection(talk) == -1)
+    if (close_connection(&info->mq_talk) == -1)
         return -1;
+    char* talker_name = info->is_server ? Q_NAME_SERVER_TO_CLIENT : Q_NAME_CLIENT_TO_SERVER;
     if (mq_unlink(talker_name) == -1)
     {
         perror("Сервер: не удалось удалить очередь");

@@ -21,8 +21,16 @@
 
 #define CLOSE_PRIORITY 0
 
-extern mqd_t mq_talk;
-extern mqd_t mq_listen;
+// extern mqd_t mq_talk;
+// extern mqd_t mq_listen;
+
+typedef struct run_info
+{
+    bool is_server;
+    char* name;
+    mqd_t mq_talk;
+    mqd_t mq_listen;
+} run_info;
 
 typedef struct msg_t
 {
@@ -33,8 +41,8 @@ typedef struct msg_t
 
 mqd_t open_connection(const char* name, struct mq_attr* attr, bool is_listener);
 
-int establish_connections(const char* talker, const char* listener);
-int close_server(mqd_t* talk, const char* talker_name);
+int establish_connections(run_info* info);
+int close_server(run_info* info);
 
 int talk(const mqd_t listener, const msg_t msg);
 msg_t* listen(const mqd_t talker);
