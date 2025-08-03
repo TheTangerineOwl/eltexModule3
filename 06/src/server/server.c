@@ -1,7 +1,7 @@
 #include "server.h"
 
 extern int client_count;
-extern int client_list[MAX_CLIENTS];
+extern long client_list[MAX_CLIENTS];
 
 int create_queue()
 {
@@ -51,9 +51,10 @@ int add_client_id(const int client_id)
     return client_id;
 }
 
-int remove_client_id(const int client_id)
+int remove_client_id(const long client_id)
 {
     int client_index = get_client(client_id);
+
     if (client_index == -1)
     {
         perror("Сервер: клиент с таким id отсутствует!");
@@ -79,30 +80,47 @@ int get_msg(const int qid, msg_t* msg)
     return 0;
 }
 
-// int send_ack(const int qid, const int client)
-// {
-//     int receiver = get_client(client);
-//     if (receiver == -1)
-//     {
-//         perror("Сервер: клиент с таким id отсутствует!");
-//         return -2;
-//     }
-//     msg_t msg = {
-//         .mtype = client,
-//         .receiver = client,
-//         .sender = SERVER_ID,
-//         .mtext = "ACK"
-//     };
-//     int send = msgsnd(qid, &msg, MSG_SIZE, IPC_NOWAIT);
-//     if (send == -1)
-//     {
-//         perror("Сервер: ошибка отправки сообщения!");
-//         return -1;
-//     }
-//     return 0;
-// }
+int send_ack(const int qid, const long client)
+{
+    int receiver = get_client(client);
+    if (receiver == -1)
+        return -2;
+    msg_t msg = {
+        .mtype = client,
+        .receiver = client,
+        .sender = SERVER_ID,
+        .mtext = "ACK"
+    };
+    int send = msgsnd(qid, &msg, MSG_SIZE, IPC_NOWAIT);
+    if (send == -1)
+    {
+        perror("Сервер: ошибка отправки сообщения!");
+        return -1;
+    }
+    return 0;
+}
 
-int process_msg(msg_t* msg)
+int send_bad(const int qid, const long client)
+{
+    int receiver = get_client(client);
+    if (receiver == -1)
+        return -2;
+    msg_t msg = {
+        .mtype = client,
+        .receiver = client,
+        .sender = SERVER_ID,
+        .mtext = "BAD"
+    };
+    int send = msgsnd(qid, &msg, MSG_SIZE, IPC_NOWAIT);
+    if (send == -1)
+    {
+        perror("Сервер: ошибка отправки сообщения!");
+        return -1;
+    }
+    return 0;
+}
+
+int process_msg(const int qid, msg_t* msg)
 {
     int cid = msg->sender;
     if (get_client(cid) == -1)
@@ -111,18 +129,23 @@ int process_msg(msg_t* msg)
         {
             printf("Сервер: добавлен клиент %d\n", cid);
             fflush(stdout);
-            // send_ack(qid, cid);
+            send_ack(qid, cid);
         }
+    }
+    if (get_client(msg->receiver) == -1 && msg->receiver != SERVER_ID)
+    {
+        printf("Сервер: клиент %ld не найден!\n", msg->receiver);
+        fflush(stdout);
+        send_bad(qid, msg->receiver);
     }
     if (strcmp(msg->mtext, "shutdown") == 0)
     {
         printf("Сервер: получен сигнал на отключение от клиента %d\n", cid);
         fflush(stdout);
-        // send_ack(qid, cid);
+        send_ack(qid, cid);
         remove_client_id(cid);
         return 0;
     }
-    msg->mtype = msg->receiver;
     return 0;
 }
 

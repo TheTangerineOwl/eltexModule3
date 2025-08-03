@@ -1,7 +1,7 @@
 #include "server.h"
 
 int client_count;
-int client_list[MAX_CLIENTS];
+long client_list[MAX_CLIENTS];
 
 int main()
 {
@@ -10,30 +10,39 @@ int main()
         return EXIT_FAILURE;
     client_count = 0;
     msg_t msg;
+    puts("Сервер запущен");
+    fflush(stdout);
     while (1)
     {
         int received = get_msg(queue, &msg);
         if (received == -1)
             continue;
-        else if (received == 1)
-        {
-            // puts("Сервер: нет сообщений");
-            continue;
-        }
-        
-        process_msg(&msg);
+
+        process_msg(queue, &msg);
 
         if (redirect_msg(queue, &msg) != 0)
         {
             printf("Сервер: не удалось отправить сообщение:\n"
+                   "\t- Тип: %ld\n"
                    "\t- Отправитель: %ld\n"
                    "\t- Получатель: %ld\n"
-                   "\t- Текст: %s\n", msg.sender, msg.receiver, msg.mtext);
+                   "\t- Текст: %s\n", msg.mtype, msg.sender, msg.receiver, msg.mtext);
+            send_bad(queue, msg.sender);
         }
-        msg.mtext[0] = '\0';
-        msg.mtype = SERVER_ID;
-        msg.receiver = SERVER_ID;
-        msg.sender = SERVER_ID;
+        else
+        {
+            printf("Сервер: получено и перенаправлено сообщение:\n"
+                   "\t- Тип: %ld\n"
+                   "\t- Отправитель: %ld\n"
+                   "\t- Получатель: %ld\n"
+                   "\t- Текст: %s\n", msg.mtype, msg.sender, msg.receiver, msg.mtext);
+        }
+
+        printf("Активные пользователи:\n");
+        for (int i = 0; i < client_count; i++)
+            printf("%ld ", client_list[i]);
+        puts("\nСервер ждет сообщений...");
+        fflush(stdout);
     }
 
     if (close_queue(queue) == -1)

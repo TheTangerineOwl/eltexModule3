@@ -21,7 +21,7 @@
 
 #define MAX_CLIENTS 32
 
-#define MSG_SIZE sizeof(msg_t)
+#define MSG_SIZE sizeof(msg_t) - sizeof(long)
 #define MSG_TEXT_SIZE 1024
 
 typedef struct msgbuf
