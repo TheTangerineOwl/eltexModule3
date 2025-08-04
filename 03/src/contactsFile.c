@@ -31,6 +31,8 @@ ssize_t readContacts(const char* filename)
     }
 
     contactsCount = count - 1;
+    if (close(file) == -1)
+        perror("readContacts");
     return contactsCount;
 }
 
@@ -46,7 +48,10 @@ ssize_t writeContacts(const char* filename)
     }
 
     if (!contactsCount)
+    {
+        close(file);
         return 0;
+    }
 
     size_t count = 0;
 
@@ -57,12 +62,14 @@ ssize_t writeContacts(const char* filename)
         if (writeBytes == -1)
         {
             perror("writeContacts");
+            close(file);
             return -1;
         }
         buffer = contacts[count];
         count++;
         writeBytes = write(file, &buffer, sizeof(buffer));
     }
-
+    if (close(file) == -1)
+        perror("readContacts");
     return count;
 }
