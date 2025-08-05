@@ -62,10 +62,13 @@ int prepare_shutdown(int queue, long my_id)
                 break;
             }
             else if (msg.receiver == my_id)
+            {
                 printf("Клиент %ld: принято сообщение:\n"
                     "\t- Отправитель: %ld\n"
                     "\t- Текст: %s\n",
                     my_id, msg.sender, msg.mtext);
+                msg.receiver = 0;
+            }
         // }
     }
     return 0;
