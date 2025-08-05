@@ -19,7 +19,7 @@ void cleanup(void)
     if (cleaned) return;  // Защита от повторного вызова
     cleaned = 1;
 
-    printf("Обработано: %d\n", *shmap[PROCOUNT].shptr);
+    printf("Обработано наборов чисел: %d\n", *shmap[PROCOUNT].shptr);
     fflush(stdout);
 
     delete_sems(&semap);
@@ -54,7 +54,7 @@ int main(void)
             int res = process_shm(&semap, shmap);
             if (res != 0)
                 exit(EXIT_FAILURE);
-            sleep(2);
+            sleep(rand() % 3);
         }
 
         exit(EXIT_SUCCESS);
@@ -70,7 +70,7 @@ int main(void)
 
                 exit(EXIT_FAILURE);
             }
-            sleep(1);
+            sleep(rand() % 3);
         }
     }
     

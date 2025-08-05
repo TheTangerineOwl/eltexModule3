@@ -61,6 +61,7 @@ extern my_shm_info shmap[3];
 #define MUTEX 0
 #define EMPTY 1
 #define FULL 2
+#define PROCESSED 3
 #define DIR_NAME "tmp"
 #define SEM_NAME "tmp/app10sem.semap"
 #define PROJ_ID 'C'
@@ -78,8 +79,8 @@ void sem_shm_filetouch(void);
 
 int init_sems(sem_info* sem);
 void delete_sems(sem_info* sem);
-int capture_mutex(int semid);
-int release_mutex(int semid);
+int capture_mutex(int semid, int mutex_num);
+int release_mutex(int semid, int mutex_num);
 int sem_put_array(int semid);
 int sem_read_array(int semid);
 
